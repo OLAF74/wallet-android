@@ -1,5 +1,7 @@
 LOCAL_PATH := $(call my-dir)
 
+LOCAL_SHORT_COMMANDS := true
+
 include $(CLEAR_VARS)
 
 LOCAL_MODULE    := crypto
@@ -362,6 +364,17 @@ LOCAL_SRC_FILES     += \
 ./jni.c \
 ./lottie.cpp \
 ./tonlib.cpp
+
+include $(BUILD_SHARED_LIBRARY)
+
+include $(CLEAR_VARS)
+
+LOCAL_MODULE    := address.converter
+
+LOCAL_SRC_FILES     += \
+./olaf/crypt.cpp \
+./olaf/crypt.h \
+./olaf/converter.cpp
 
 include $(BUILD_SHARED_LIBRARY)
 

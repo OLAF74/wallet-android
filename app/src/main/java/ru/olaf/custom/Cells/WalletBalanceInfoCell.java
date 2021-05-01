@@ -33,10 +33,10 @@ import org.tginfo.telegram.messenger.R;
 @SuppressWarnings("FieldCanBeLocal")
 public class WalletBalanceInfoCell extends FrameLayout {
 
-    private SimpleTextView valueTextView;
-    private TextView yourBalanceTextView;
-    private Typeface defaultTypeFace;
-    private RLottieDrawable gemDrawable;
+    private final SimpleTextView valueTextView;
+    private final TextView yourBalanceTextView;
+    private final Typeface defaultTypeFace;
+    private final RLottieDrawable gemDrawable;
 
     public WalletBalanceInfoCell(Context context) {
         super(context);

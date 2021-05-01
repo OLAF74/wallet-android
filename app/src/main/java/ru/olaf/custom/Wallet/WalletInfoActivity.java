@@ -8,6 +8,7 @@ import android.graphics.PorterDuffColorFilter;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.os.AsyncTask;
+import android.os.Handler;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -18,7 +19,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
-import org.telegram.messenger.TonController;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
@@ -52,23 +52,24 @@ public class WalletInfoActivity extends BaseFragment {
     private final static String PENDING_KEY = "pending";
 
     private Toncenter api;
-    private String walletAddress;
+    private final String walletAddress;
     private Loader loader;
     private long balance;
-    private BaseFragment parentFragment;
-    private WalletActionSheet walletActionSheet;
+    private final BaseFragment parentFragment;
+    private final WalletActionSheet walletActionSheet;
+    private final Handler uiHandler = new Handler();
 
 
     private RecyclerListView listView;
     private WalletInfoActivity.Adapter adapter;
 
-    private Paint blackPaint = new Paint();
+    private final Paint blackPaint = new Paint();
     private GradientDrawable backgroundDrawable;
     private float[] radii;
 
-    private HashMap<Long, WalletTransaction> transactionsDict = new HashMap<>();
-    private HashMap<String, ArrayList<WalletTransaction>> sectionArrays = new HashMap<>();
-    private ArrayList<String> sections = new ArrayList<>();
+    private final HashMap<Long, WalletTransaction> transactionsDict = new HashMap<>();
+    private final HashMap<String, ArrayList<WalletTransaction>> sectionArrays = new HashMap<>();
+    private final ArrayList<String> sections = new ArrayList<>();
 
 
     public WalletInfoActivity(String walletAddress, BaseFragment parentFragment, WalletActionSheet walletActionSheet) {
@@ -148,7 +149,7 @@ public class WalletInfoActivity extends BaseFragment {
         api = new Toncenter(context);
 
         if (loader == null || loader.isCancelled()) {
-            loader = new Loader(context);
+            loader = new Loader(context, uiHandler);
             loader.execute();
         }
         return fragmentView;
@@ -486,9 +487,11 @@ public class WalletInfoActivity extends BaseFragment {
     private class Loader extends AsyncTask<Void, Void, Void> {
 
         Context context;
+        Handler uiHandler;
 
-        public Loader(Context context) {
+        public Loader(Context context, Handler uiHandler) {
             this.context = context;
+            this.uiHandler = uiHandler;
         }
 
         @Override
@@ -505,7 +508,7 @@ public class WalletInfoActivity extends BaseFragment {
                 Response<GetWalletInformationRoot> getWalletInformationResponse = api.getMethods().getWalletInformation(walletAddress).execute();
                 if (getTransactionsResponse.body() == null || !getTransactionsResponse.body().getOk()
                         || getWalletInformationResponse.body() == null || !getWalletInformationResponse.body().getOk()) {
-                    AlertsCreator.showSimpleAlert(WalletInfoActivity.this, LocaleController.getString("Wallet", R.string.Wallet), LocaleController.getString("WalletTransactionsInfoError", R.string.WalletTransactionsInfoError));
+                    uiHandler.post(() -> AlertsCreator.showSimpleAlert(WalletInfoActivity.this, LocaleController.getString("Wallet", R.string.Wallet), LocaleController.getString("WalletTransactionsInfoError", R.string.WalletTransactionsInfoError)));
                     return null;
                 }
 
@@ -527,7 +530,8 @@ public class WalletInfoActivity extends BaseFragment {
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
-            adapter.setLoading(false);
+            if (adapter != null)
+                adapter.setLoading(false);
         }
     }
 }
